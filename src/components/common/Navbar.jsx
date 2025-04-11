@@ -22,7 +22,7 @@ const Navbar = ({ toggleSidebar }) => {
         
         <BootstrapNavbar.Brand as={Link} to="/">
           <img
-            src="/assets/images/svit-logo.png"
+            src="https://svitatp.ac.in/public/assets/admin/images/sitesetting/664263736b243_SVIT%20LOGO.png"
             alt="SVIT Logo"
             height="30"
             className="d-inline-block align-top me-2"

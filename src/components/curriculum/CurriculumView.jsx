@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Card, Row, Col, Badge, Button, ListGroup, Tab, Nav } from 'react-bootstrap';
+import { Card, Row, Col, Badge, Button, ListGroup, Tab, Nav, Toast } from 'react-bootstrap';
 import { FaDownload, FaArrowLeft, FaCalendarAlt, FaUser, FaBook, FaClipboardList, FaGraduationCap } from 'react-icons/fa';
 import Loader from '../common/Loader';
+import { downloadCurriculumPDF } from '../../utils/pdfUtils';
 
 const CurriculumView = () => {
   const { id } = useParams();
   const [curriculum, setCurriculum] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState('success');
   
   useEffect(() => {
     // Simulate API call to fetch curriculum details
@@ -115,6 +119,28 @@ const CurriculumView = () => {
     fetchCurriculumDetails();
   }, [id]);
   
+  // Handle curriculum download
+  const handleDownload = () => {
+    try {
+      const success = downloadCurriculumPDF(curriculum);
+      
+      if (success) {
+        setToastVariant('success');
+        setToastMessage('Curriculum downloaded successfully!');
+      } else {
+        setToastVariant('danger');
+        setToastMessage('Failed to download curriculum. Please try again.');
+      }
+      
+      setShowToast(true);
+    } catch (error) {
+      console.error('Error downloading curriculum:', error);
+      setToastVariant('danger');
+      setToastMessage('An error occurred while downloading. Please try again.');
+      setShowToast(true);
+    }
+  };
+  
   if (loading) {
     return <Loader message="Loading curriculum details..." />;
   }
@@ -143,6 +169,30 @@ const CurriculumView = () => {
   
   return (
     <div>
+      {/* Toast notification */}
+      <Toast 
+        show={showToast} 
+        onClose={() => setShowToast(false)} 
+        delay={3000} 
+        autohide
+        style={{
+          position: 'fixed',
+          top: 20,
+          right: 20,
+          zIndex: 9999
+        }}
+        bg={toastVariant}
+      >
+        <Toast.Header>
+          <strong className="me-auto">
+            {toastVariant === 'success' ? 'Success' : 'Error'}
+          </strong>
+        </Toast.Header>
+        <Toast.Body className={toastVariant === 'success' ? '' : 'text-white'}>
+          {toastMessage}
+        </Toast.Body>
+      </Toast>
+      
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div className="d-flex align-items-center">
           <Button 
@@ -155,7 +205,7 @@ const CurriculumView = () => {
           </Button>
           <h2 className="mb-0">Curriculum Details</h2>
         </div>
-        <Button variant="success">
+        <Button variant="success" onClick={handleDownload}>
           <FaDownload className="me-2" /> Download
         </Button>
       </div>

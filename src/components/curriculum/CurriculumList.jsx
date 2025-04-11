@@ -1,15 +1,21 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Card, Form, Button, Row, Col, Badge } from 'react-bootstrap';
+import { Card, Form, Button, Row, Col, Badge, Toast } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { FaSearch, FaEye, FaDownload, FaFilter, FaSort } from 'react-icons/fa';
+import { FaSearch, FaEye, FaDownload, FaFilter, FaSort, FaFilePdf } from 'react-icons/fa';
 import { AuthContext } from '../../contexts/AuthContext';
 import Loader from '../common/Loader';
+import { downloadCurriculumPDF, downloadCurriculumListPDF } from '../../utils/pdfUtils';
 
 const CurriculumList = () => {
   const { user } = useContext(AuthContext);
   const [curriculumList, setCurriculumList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Toast notification state
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState('success');
   
   // Filter states
   const [filters, setFilters] = useState({
@@ -43,7 +49,27 @@ const CurriculumList = () => {
             semester: 'Odd',
             faculty: 'Dr. Arun Kumar',
             lastUpdated: '2024-02-20',
-            status: 'published'
+            status: 'published',
+            description: 'Introduction to programming concepts using Python language',
+            objectives: [
+              "Understand basic programming concepts",
+              "Learn Python syntax and semantics",
+              "Develop problem-solving skills"
+            ],
+            outcomes: [
+              "Ability to write Python programs",
+              "Capability to solve computational problems",
+              "Foundation for advanced programming courses"
+            ],
+            units: [
+              {
+                title: "Introduction to Python",
+                description: "Basics of Python programming",
+                topics: ["Python History and Installation", "Python Syntax and Variables", "Basic Data Types"]
+              }
+            ],
+            textbooks: ["Python Programming: An Introduction to Computer Science by John Zelle"],
+            references: ["Think Python by Allen B. Downey"]
           },
           {
             id: 2,
@@ -53,7 +79,13 @@ const CurriculumList = () => {
             semester: 'Even',
             faculty: 'Prof. Meena Rani',
             lastUpdated: '2024-01-15',
-            status: 'published'
+            status: 'published',
+            description: 'Study of fundamental data structures and algorithms',
+            objectives: ["Understand data structures", "Analyze algorithms"],
+            outcomes: ["Implement various data structures", "Apply efficient algorithms"],
+            units: [{title: "Arrays and Linked Lists", description: "Basic data structures", topics: ["Arrays", "Linked Lists"]}],
+            textbooks: ["Introduction to Algorithms by CLRS"],
+            references: ["Algorithms by Robert Sedgewick"]
           },
           {
             id: 3,
@@ -63,7 +95,13 @@ const CurriculumList = () => {
             semester: 'Odd',
             faculty: 'Dr. Sunil Reddy',
             lastUpdated: '2024-03-05',
-            status: 'published'
+            status: 'published',
+            description: 'Study of computer networks and protocols',
+            objectives: ["Understand network concepts", "Learn network protocols"],
+            outcomes: ["Design network infrastructure", "Implement network protocols"],
+            units: [{title: "Network Fundamentals", description: "Introduction to networking", topics: ["OSI Model", "TCP/IP"]}],
+            textbooks: ["Computer Networks by Tanenbaum"],
+            references: ["TCP/IP Protocol Suite by Forouzan"]
           },
           {
             id: 4,
@@ -73,7 +111,13 @@ const CurriculumList = () => {
             semester: 'Odd',
             faculty: 'Prof. Ananya Singh',
             lastUpdated: '2024-01-10',
-            status: 'published'
+            status: 'published',
+            description: 'Study of database concepts and SQL',
+            objectives: ["Understand database design", "Learn SQL"],
+            outcomes: ["Design databases", "Write complex SQL queries"],
+            units: [{title: "Database Concepts", description: "Basic database design", topics: ["ER Model", "Normalization"]}],
+            textbooks: ["Database System Concepts by Silberschatz"],
+            references: ["Fundamentals of Database Systems by Elmasri"]
           },
           {
             id: 5,
@@ -83,7 +127,13 @@ const CurriculumList = () => {
             semester: 'Even',
             faculty: 'Dr. Ravi Teja',
             lastUpdated: '2024-02-28',
-            status: 'published'
+            status: 'published',
+            description: 'Study of digital signal processing techniques',
+            objectives: ["Understand digital signals", "Learn signal processing algorithms"],
+            outcomes: ["Implement signal processing systems", "Apply filtering techniques"],
+            units: [{title: "Signals and Systems", description: "Introduction to signals", topics: ["Continuous Signals", "Discrete Signals"]}],
+            textbooks: ["Digital Signal Processing by Proakis"],
+            references: ["Discrete-Time Signal Processing by Oppenheim"]
           },
           {
             id: 6,
@@ -93,7 +143,13 @@ const CurriculumList = () => {
             semester: 'Odd',
             faculty: 'Prof. Shalini Verma',
             lastUpdated: '2024-02-10',
-            status: 'published'
+            status: 'published',
+            description: 'Study of electromagnetic fields and waves',
+            objectives: ["Understand Maxwell's equations", "Learn wave propagation"],
+            outcomes: ["Analyze electromagnetic fields", "Design transmission lines"],
+            units: [{title: "Electrostatics", description: "Static electric fields", topics: ["Coulomb's Law", "Electric Potential"]}],
+            textbooks: ["Elements of Electromagnetics by Sadiku"],
+            references: ["Engineering Electromagnetics by Hayt"]
           },
           {
             id: 7,
@@ -103,7 +159,13 @@ const CurriculumList = () => {
             semester: 'Odd',
             faculty: 'Dr. Ramesh Iyer',
             lastUpdated: '2024-03-02',
-            status: 'published'
+            status: 'published',
+            description: 'Study of electrical power systems',
+            objectives: ["Understand power generation", "Learn power transmission"],
+            outcomes: ["Design power systems", "Analyze power distribution"],
+            units: [{title: "Power Generation", description: "Electric power sources", topics: ["Thermal Power", "Hydroelectric Power"]}],
+            textbooks: ["Power System Engineering by Nagrath and Kothari"],
+            references: ["Electric Power Systems by Weedy"]
           },
           {
             id: 8,
@@ -113,7 +175,13 @@ const CurriculumList = () => {
             semester: 'Even',
             faculty: 'Prof. Suresh Kumar',
             lastUpdated: '2024-01-25',
-            status: 'published'
+            status: 'published',
+            description: 'Study of thermal energy and work',
+            objectives: ["Understand thermodynamic laws", "Learn energy transformation"],
+            outcomes: ["Analyze thermal systems", "Design engines and refrigerators"],
+            units: [{title: "Laws of Thermodynamics", description: "Fundamental laws", topics: ["First Law", "Second Law"]}],
+            textbooks: ["Fundamentals of Thermodynamics by Sonntag"],
+            references: ["Thermodynamics: An Engineering Approach by Cengel"]
           }
         ];
         
@@ -159,6 +227,51 @@ const CurriculumList = () => {
       semester: ''
     });
     setSearchQuery('');
+  };
+  
+  // Download single curriculum
+  const handleDownloadCurriculum = (item) => {
+    try {
+      const success = downloadCurriculumPDF(item);
+      
+      if (success) {
+        setToastVariant('success');
+        setToastMessage(`${item.title} curriculum downloaded successfully!`);
+      } else {
+        setToastVariant('danger');
+        setToastMessage('Failed to download curriculum. Please try again.');
+      }
+      
+      setShowToast(true);
+    } catch (error) {
+      console.error('Error downloading curriculum:', error);
+      setToastVariant('danger');
+      setToastMessage('An error occurred while downloading. Please try again.');
+      setShowToast(true);
+    }
+  };
+  
+  // Download entire list as PDF
+  const handleDownloadList = () => {
+    try {
+      const filteredCurriculum = getFilteredAndSortedCurriculum();
+      const success = downloadCurriculumListPDF(filteredCurriculum);
+      
+      if (success) {
+        setToastVariant('success');
+        setToastMessage(`Curriculum list with ${filteredCurriculum.length} items downloaded successfully!`);
+      } else {
+        setToastVariant('danger');
+        setToastMessage('Failed to download curriculum list. Please try again.');
+      }
+      
+      setShowToast(true);
+    } catch (error) {
+      console.error('Error downloading curriculum list:', error);
+      setToastVariant('danger');
+      setToastMessage('An error occurred while downloading. Please try again.');
+      setShowToast(true);
+    }
   };
   
   // Apply filters and sorting to the curriculum list
@@ -208,8 +321,41 @@ const CurriculumList = () => {
   
   return (
     <div>
+      {/* Toast notification */}
+      <Toast 
+        show={showToast} 
+        onClose={() => setShowToast(false)} 
+        delay={3000} 
+        autohide
+        style={{
+          position: 'fixed',
+          top: 20,
+          right: 20,
+          zIndex: 9999
+        }}
+        bg={toastVariant}
+      >
+        <Toast.Header>
+          <strong className="me-auto">
+            {toastVariant === 'success' ? 'Success' : 'Error'}
+          </strong>
+        </Toast.Header>
+        <Toast.Body className={toastVariant === 'success' ? '' : 'text-white'}>
+          {toastMessage}
+        </Toast.Body>
+      </Toast>
+      
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Curriculum List</h2>
+        {filteredCurriculum.length > 0 && (
+          <Button 
+            variant="success" 
+            onClick={handleDownloadList}
+            className="d-flex align-items-center"
+          >
+            <FaFilePdf className="me-2" /> Download List as PDF
+          </Button>
+        )}
       </div>
       
       <Card className="shadow-sm mb-4">
@@ -370,6 +516,7 @@ const CurriculumList = () => {
                               variant="outline-success"
                               size="sm"
                               title="Download"
+                              onClick={() => handleDownloadCurriculum(item)}
                             >
                               <FaDownload />
                             </Button>

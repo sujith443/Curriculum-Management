@@ -1,8 +1,9 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Card, Row, Col, Button, Badge } from 'react-bootstrap';
+import { Card, Row, Col, Button, Badge, Toast } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { FaUpload, FaEdit, FaChartBar, FaCalendarAlt, FaBook } from 'react-icons/fa';
+import { FaUpload, FaEdit, FaChartBar, FaCalendarAlt, FaBook, FaDownload, FaEye } from 'react-icons/fa';
 import { AuthContext } from '../../contexts/AuthContext';
+import { downloadCurriculumPDF } from '../../utils/pdfUtils';
 
 const FacultyDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -14,6 +15,11 @@ const FacultyDashboard = () => {
     recentViews: 0 
   });
   const [loading, setLoading] = useState(true);
+  
+  // Toast notification state
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState('success');
   
   useEffect(() => {
     // Simulate API call to fetch faculty curriculum and stats
@@ -32,7 +38,26 @@ const FacultyDashboard = () => {
             semester: 'Odd',
             status: 'published',
             lastUpdated: '2024-02-10',
-            views: 45
+            views: 45,
+            faculty: 'Dr. Jane Smith',
+            description: 'Advanced concepts in database management systems',
+            objectives: [
+              "Understand advanced database concepts",
+              "Learn database optimization techniques"
+            ],
+            outcomes: [
+              "Design complex database systems",
+              "Implement query optimization strategies"
+            ],
+            units: [
+              {
+                title: "Advanced SQL",
+                description: "Complex SQL operations",
+                topics: ["Stored Procedures", "Triggers", "Views"]
+              }
+            ],
+            textbooks: ["Database System Concepts by Silberschatz"],
+            references: ["Fundamentals of Database Systems by Elmasri"]
           },
           {
             id: 2,
@@ -42,7 +67,26 @@ const FacultyDashboard = () => {
             semester: 'Even',
             status: 'published',
             lastUpdated: '2024-01-15',
-            views: 38
+            views: 38,
+            faculty: 'Dr. Jane Smith',
+            description: 'Introduction to artificial intelligence concepts',
+            objectives: [
+              "Understand AI fundamentals",
+              "Learn problem-solving techniques"
+            ],
+            outcomes: [
+              "Implement search algorithms",
+              "Design intelligent systems"
+            ],
+            units: [
+              {
+                title: "Problem Solving",
+                description: "AI problem-solving methods",
+                topics: ["Search Algorithms", "Heuristics", "Game Theory"]
+              }
+            ],
+            textbooks: ["Artificial Intelligence: A Modern Approach by Russell and Norvig"],
+            references: ["Introduction to Artificial Intelligence by Ertel"]
           },
           {
             id: 3,
@@ -52,7 +96,26 @@ const FacultyDashboard = () => {
             semester: 'Odd',
             status: 'draft',
             lastUpdated: '2024-03-01',
-            views: 0
+            views: 0,
+            faculty: 'Dr. Jane Smith',
+            description: 'Introduction to machine learning algorithms',
+            objectives: [
+              "Understand machine learning concepts",
+              "Learn different learning paradigms"
+            ],
+            outcomes: [
+              "Implement supervised learning algorithms",
+              "Design unsupervised learning systems"
+            ],
+            units: [
+              {
+                title: "Supervised Learning",
+                description: "Learning with labeled data",
+                topics: ["Regression", "Classification", "Neural Networks"]
+              }
+            ],
+            textbooks: ["Pattern Recognition and Machine Learning by Bishop"],
+            references: ["Machine Learning by Mitchell"]
           }
         ];
         
@@ -75,8 +138,54 @@ const FacultyDashboard = () => {
     fetchFacultyData();
   }, []);
   
+  // Handle curriculum download
+  const handleDownloadCurriculum = (item) => {
+    try {
+      const success = downloadCurriculumPDF(item);
+      
+      if (success) {
+        setToastVariant('success');
+        setToastMessage(`${item.title} curriculum downloaded successfully!`);
+      } else {
+        setToastVariant('danger');
+        setToastMessage('Failed to download curriculum. Please try again.');
+      }
+      
+      setShowToast(true);
+    } catch (error) {
+      console.error('Error downloading curriculum:', error);
+      setToastVariant('danger');
+      setToastMessage('An error occurred while downloading. Please try again.');
+      setShowToast(true);
+    }
+  };
+  
   return (
     <div>
+      {/* Toast notification */}
+      <Toast 
+        show={showToast} 
+        onClose={() => setShowToast(false)} 
+        delay={3000} 
+        autohide
+        style={{
+          position: 'fixed',
+          top: 20,
+          right: 20,
+          zIndex: 9999
+        }}
+        bg={toastVariant}
+      >
+        <Toast.Header>
+          <strong className="me-auto">
+            {toastVariant === 'success' ? 'Success' : 'Error'}
+          </strong>
+        </Toast.Header>
+        <Toast.Body className={toastVariant === 'success' ? '' : 'text-white'}>
+          {toastMessage}
+        </Toast.Body>
+      </Toast>
+      
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Faculty Dashboard</h2>
         <div>
@@ -197,15 +306,28 @@ const FacultyDashboard = () => {
                                   variant="outline-primary"
                                   size="sm"
                                   className="me-2"
+                                  title="View"
                                 >
-                                  View
+                                  <FaEye />
                                 </Button>
                                 <Button
                                   variant="outline-secondary"
                                   size="sm"
+                                  className="me-2"
+                                  title="Edit"
                                 >
-                                  Edit
+                                  <FaEdit />
                                 </Button>
+                                {item.status === 'published' && (
+                                  <Button
+                                    variant="outline-success"
+                                    size="sm"
+                                    title="Download"
+                                    onClick={() => handleDownloadCurriculum(item)}
+                                  >
+                                    <FaDownload />
+                                  </Button>
+                                )}
                               </td>
                             </tr>
                           ))}

@@ -1,13 +1,19 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Card, Row, Col, ListGroup, Button } from 'react-bootstrap';
+import { Card, Row, Col, ListGroup, Button, Toast } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { FaDownload, FaEye, FaBook, FaCalendarAlt, FaNewspaper } from 'react-icons/fa';
 import { AuthContext } from '../../contexts/AuthContext';
+import { downloadCurriculumPDF } from '../../utils/pdfUtils';
 
 const StudentDashboard = () => {
   const { user } = useContext(AuthContext);
   const [recentCurriculum, setRecentCurriculum] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Toast notification state
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState('success');
   
   useEffect(() => {
     // Simulate API call to fetch recent curriculum
@@ -24,7 +30,14 @@ const StudentDashboard = () => {
             department: 'CSE',
             year: '2',
             semester: 'Odd',
-            lastUpdated: '2024-02-15'
+            lastUpdated: '2024-02-15',
+            faculty: 'Prof. Meena Rani',
+            description: 'Study of fundamental data structures and algorithms',
+            objectives: ["Understand data structures", "Analyze algorithms"],
+            outcomes: ["Implement various data structures", "Apply efficient algorithms"],
+            units: [{title: "Arrays and Linked Lists", description: "Basic data structures", topics: ["Arrays", "Linked Lists"]}],
+            textbooks: ["Introduction to Algorithms by CLRS"],
+            references: ["Algorithms by Robert Sedgewick"]
           },
           {
             id: 2,
@@ -32,7 +45,14 @@ const StudentDashboard = () => {
             department: 'CSE',
             year: '3',
             semester: 'Even',
-            lastUpdated: '2024-01-20'
+            lastUpdated: '2024-01-20',
+            faculty: 'Dr. Sunil Reddy',
+            description: 'Study of computer networks and protocols',
+            objectives: ["Understand network concepts", "Learn network protocols"],
+            outcomes: ["Design network infrastructure", "Implement network protocols"],
+            units: [{title: "Network Fundamentals", description: "Introduction to networking", topics: ["OSI Model", "TCP/IP"]}],
+            textbooks: ["Computer Networks by Tanenbaum"],
+            references: ["TCP/IP Protocol Suite by Forouzan"]
           },
           {
             id: 3,
@@ -40,7 +60,14 @@ const StudentDashboard = () => {
             department: 'CSE',
             year: '2',
             semester: 'Even',
-            lastUpdated: '2024-03-05'
+            lastUpdated: '2024-03-05',
+            faculty: 'Prof. Ananya Singh',
+            description: 'Study of database concepts and SQL',
+            objectives: ["Understand database design", "Learn SQL"],
+            outcomes: ["Design databases", "Write complex SQL queries"],
+            units: [{title: "Database Concepts", description: "Basic database design", topics: ["ER Model", "Normalization"]}],
+            textbooks: ["Database System Concepts by Silberschatz"],
+            references: ["Fundamentals of Database Systems by Elmasri"]
           }
         ];
         
@@ -55,8 +82,54 @@ const StudentDashboard = () => {
     fetchRecentCurriculum();
   }, []);
   
+  // Handle curriculum download
+  const handleDownloadCurriculum = (item) => {
+    try {
+      const success = downloadCurriculumPDF(item);
+      
+      if (success) {
+        setToastVariant('success');
+        setToastMessage(`${item.title} curriculum downloaded successfully!`);
+      } else {
+        setToastVariant('danger');
+        setToastMessage('Failed to download curriculum. Please try again.');
+      }
+      
+      setShowToast(true);
+    } catch (error) {
+      console.error('Error downloading curriculum:', error);
+      setToastVariant('danger');
+      setToastMessage('An error occurred while downloading. Please try again.');
+      setShowToast(true);
+    }
+  };
+  
   return (
     <div>
+      {/* Toast notification */}
+      <Toast 
+        show={showToast} 
+        onClose={() => setShowToast(false)} 
+        delay={3000} 
+        autohide
+        style={{
+          position: 'fixed',
+          top: 20,
+          right: 20,
+          zIndex: 9999
+        }}
+        bg={toastVariant}
+      >
+        <Toast.Header>
+          <strong className="me-auto">
+            {toastVariant === 'success' ? 'Success' : 'Error'}
+          </strong>
+        </Toast.Header>
+        <Toast.Body className={toastVariant === 'success' ? '' : 'text-white'}>
+          {toastMessage}
+        </Toast.Body>
+      </Toast>
+      
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Student Dashboard</h2>
         <div>
@@ -140,6 +213,7 @@ const StudentDashboard = () => {
                                 <Button
                                   variant="outline-success"
                                   size="sm"
+                                  onClick={() => handleDownloadCurriculum(item)}
                                 >
                                   <FaDownload /> Download
                                 </Button>
