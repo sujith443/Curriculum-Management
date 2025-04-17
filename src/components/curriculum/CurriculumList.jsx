@@ -347,7 +347,7 @@ const CurriculumList = () => {
       
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Curriculum List</h2>
-        {filteredCurriculum.length > 0 && (
+        {/* {filteredCurriculum.length > 0 && (
           <Button 
             variant="success" 
             onClick={handleDownloadList}
@@ -355,7 +355,7 @@ const CurriculumList = () => {
           >
             <FaFilePdf className="me-2" /> Download List as PDF
           </Button>
-        )}
+        )} */}
       </div>
       
       <Card className="shadow-sm mb-4">

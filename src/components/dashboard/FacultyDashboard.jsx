@@ -1,9 +1,22 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Card, Row, Col, Button, Badge, Toast } from 'react-bootstrap';
+import { Card, Row, Col, Button, Badge, Toast, Nav, Tab } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { FaUpload, FaEdit, FaChartBar, FaCalendarAlt, FaBook, FaDownload, FaEye } from 'react-icons/fa';
+import { 
+  FaUpload, 
+  FaEdit, 
+  FaChartBar, 
+  FaCalendarAlt, 
+  FaBook, 
+  FaDownload, 
+  FaEye,
+  FaBullhorn,
+  FaLink
+} from 'react-icons/fa';
 import { AuthContext } from '../../contexts/AuthContext';
 import { downloadCurriculumPDF } from '../../utils/pdfUtils';
+import AnnouncementsList from '../announcements/AnnouncementsList';
+import AcademicCalendar from '../calendar/AcademicCalendar';
+import ResourcesList from '../resources/ResourcesList';
 
 const FacultyDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -15,6 +28,7 @@ const FacultyDashboard = () => {
     recentViews: 0 
   });
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('dashboard');
   
   // Toast notification state
   const [showToast, setShowToast] = useState(false);
@@ -160,6 +174,11 @@ const FacultyDashboard = () => {
     }
   };
   
+  // Handle tab selection
+  const handleTabSelect = (key) => {
+    setActiveTab(key);
+  };
+  
   return (
     <div>
       {/* Toast notification */}
@@ -195,159 +214,229 @@ const FacultyDashboard = () => {
         </div>
       </div>
       
-      {/* Stats Cards */}
-      <Row className="g-4 mb-4">
-        <Col md={6} xl={3}>
-          <Card className="bg-primary text-white h-100">
-            <Card.Body className="d-flex flex-column align-items-center p-4">
-              <FaBook className="display-4 mb-2" />
-              <h3 className="fw-bold mb-0">{stats.total}</h3>
-              <p className="mb-0">Total Curriculum</p>
-            </Card.Body>
-          </Card>
-        </Col>
+      <Tab.Container id="faculty-tabs" activeKey={activeTab} onSelect={handleTabSelect}>
+        <Row className="mb-4">
+          <Col>
+            <Nav variant="pills" className="faculty-nav">
+              <Nav.Item>
+                <Nav.Link eventKey="dashboard" className="d-flex align-items-center">
+                  <FaBook className="me-2" /> Dashboard
+                </Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="announcements" className="d-flex align-items-center">
+                  <FaBullhorn className="me-2" /> Announcements
+                </Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="calendar" className="d-flex align-items-center">
+                  <FaCalendarAlt className="me-2" /> Academic Calendar
+                </Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="resources" className="d-flex align-items-center">
+                  <FaLink className="me-2" /> Resources & Links
+                </Nav.Link>
+              </Nav.Item>
+            </Nav>
+          </Col>
+        </Row>
         
-        <Col md={6} xl={3}>
-          <Card className="bg-success text-white h-100">
-            <Card.Body className="d-flex flex-column align-items-center p-4">
-              <FaUpload className="display-4 mb-2" />
-              <h3 className="fw-bold mb-0">{stats.published}</h3>
-              <p className="mb-0">Published</p>
-            </Card.Body>
-          </Card>
-        </Col>
-        
-        <Col md={6} xl={3}>
-          <Card className="bg-warning text-dark h-100">
-            <Card.Body className="d-flex flex-column align-items-center p-4">
-              <FaEdit className="display-4 mb-2" />
-              <h3 className="fw-bold mb-0">{stats.drafts}</h3>
-              <p className="mb-0">Drafts</p>
-            </Card.Body>
-          </Card>
-        </Col>
-        
-        <Col md={6} xl={3}>
-          <Card className="bg-info text-white h-100">
-            <Card.Body className="d-flex flex-column align-items-center p-4">
-              <FaChartBar className="display-4 mb-2" />
-              <h3 className="fw-bold mb-0">{stats.recentViews}</h3>
-              <p className="mb-0">Recent Views</p>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-      
-      <Row className="g-4">
-        {/* Quick Actions */}
-        <Col lg={4}>
-          <Card className="shadow-sm h-100">
-            <Card.Header className="bg-primary text-white">
-              <h5 className="mb-0">Quick Actions</h5>
-            </Card.Header>
-            <Card.Body className="d-grid gap-3">
-              <Button as={Link} to="/curriculum/upload" variant="primary" size="lg" className="d-flex align-items-center justify-content-center">
-                <FaUpload className="me-2" /> Upload New Curriculum
-              </Button>
-              <Button as={Link} to="/curriculum/list" variant="outline-primary" size="lg" className="d-flex align-items-center justify-content-center">
-                <FaBook className="me-2" /> View All Curriculum
-              </Button>
-              <Button variant="outline-secondary" size="lg" className="d-flex align-items-center justify-content-center">
-                <FaCalendarAlt className="me-2" /> Academic Calendar
-              </Button>
-            </Card.Body>
-          </Card>
-        </Col>
-        
-        {/* My Uploaded Curriculum */}
-        <Col lg={8}>
-          <Card className="shadow-sm h-100">
-            <Card.Header className="bg-primary text-white">
-              <h5 className="mb-0">My Uploaded Curriculum</h5>
-            </Card.Header>
-            <Card.Body>
-              {loading ? (
-                <p className="text-center my-4">Loading your curriculum data...</p>
-              ) : (
-                <>
-                  {myCurriculum.length > 0 ? (
-                    <div className="table-responsive">
-                      <table className="table table-hover">
-                        <thead>
-                          <tr>
-                            <th>Title</th>
-                            <th>Year</th>
-                            <th>Semester</th>
-                            <th>Status</th>
-                            <th>Last Updated</th>
-                            <th>Views</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {myCurriculum.map(item => (
-                            <tr key={item.id}>
-                              <td>{item.title}</td>
-                              <td>{item.year}</td>
-                              <td>{item.semester}</td>
-                              <td>
-                                {item.status === 'published' ? (
-                                  <Badge bg="success">Published</Badge>
-                                ) : (
-                                  <Badge bg="warning" text="dark">Draft</Badge>
-                                )}
-                              </td>
-                              <td>{item.lastUpdated}</td>
-                              <td>{item.views}</td>
-                              <td>
-                                <Button
-                                  as={Link}
-                                  to={`/curriculum/view/${item.id}`}
-                                  variant="outline-primary"
-                                  size="sm"
-                                  className="me-2"
-                                  title="View"
-                                >
-                                  <FaEye />
-                                </Button>
-                                <Button
-                                  variant="outline-secondary"
-                                  size="sm"
-                                  className="me-2"
-                                  title="Edit"
-                                >
-                                  <FaEdit />
-                                </Button>
-                                {item.status === 'published' && (
-                                  <Button
-                                    variant="outline-success"
-                                    size="sm"
-                                    title="Download"
-                                    onClick={() => handleDownloadCurriculum(item)}
-                                  >
-                                    <FaDownload />
-                                  </Button>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="text-center my-4">
-                      <p>You haven't uploaded any curriculum yet.</p>
-                      <Button as={Link} to="/curriculum/upload" variant="primary">
-                        Upload Your First Curriculum
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+        <Tab.Content>
+          {/* Dashboard Tab */}
+          <Tab.Pane eventKey="dashboard">
+            {/* Stats Cards */}
+            <Row className="g-4 mb-4">
+              <Col md={6} xl={3}>
+                <Card className="bg-primary text-white h-100">
+                  <Card.Body className="d-flex flex-column align-items-center p-4">
+                    <FaBook className="display-4 mb-2" />
+                    <h3 className="fw-bold mb-0">{stats.total}</h3>
+                    <p className="mb-0">Total Curriculum</p>
+                  </Card.Body>
+                </Card>
+              </Col>
+              
+              <Col md={6} xl={3}>
+                <Card className="bg-success text-white h-100">
+                  <Card.Body className="d-flex flex-column align-items-center p-4">
+                    <FaUpload className="display-4 mb-2" />
+                    <h3 className="fw-bold mb-0">{stats.published}</h3>
+                    <p className="mb-0">Published</p>
+                  </Card.Body>
+                </Card>
+              </Col>
+              
+              <Col md={6} xl={3}>
+                <Card className="bg-warning text-dark h-100">
+                  <Card.Body className="d-flex flex-column align-items-center p-4">
+                    <FaEdit className="display-4 mb-2" />
+                    <h3 className="fw-bold mb-0">{stats.drafts}</h3>
+                    <p className="mb-0">Drafts</p>
+                  </Card.Body>
+                </Card>
+              </Col>
+              
+              <Col md={6} xl={3}>
+                <Card className="bg-info text-white h-100">
+                  <Card.Body className="d-flex flex-column align-items-center p-4">
+                    <FaChartBar className="display-4 mb-2" />
+                    <h3 className="fw-bold mb-0">{stats.recentViews}</h3>
+                    <p className="mb-0">Recent Views</p>
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+            
+            <Row className="g-4">
+              {/* Quick Actions */}
+              <Col lg={4}>
+                <Card className="shadow-sm h-100">
+                  <Card.Header className="bg-primary text-white">
+                    <h5 className="mb-0">Quick Actions</h5>
+                  </Card.Header>
+                  <Card.Body className="d-grid gap-3">
+                    <Button as={Link} to="/curriculum/upload" variant="primary" size="lg" className="d-flex align-items-center justify-content-center">
+                      <FaUpload className="me-2" /> Upload New Curriculum
+                    </Button>
+                    <Button as={Link} to="/curriculum/list" variant="outline-primary" size="lg" className="d-flex align-items-center justify-content-center">
+                      <FaBook className="me-2" /> View All Curriculum
+                    </Button>
+                    <Button 
+                      variant="outline-secondary" 
+                      size="lg" 
+                      className="d-flex align-items-center justify-content-center"
+                      onClick={() => setActiveTab('calendar')}
+                    >
+                      <FaCalendarAlt className="me-2" /> Academic Calendar
+                    </Button>
+                    <Button 
+                      variant="outline-info" 
+                      size="lg" 
+                      className="d-flex align-items-center justify-content-center"
+                      onClick={() => setActiveTab('announcements')}
+                    >
+                      <FaBullhorn className="me-2" /> View Announcements
+                    </Button>
+                    <Button 
+                      variant="outline-success" 
+                      size="lg" 
+                      className="d-flex align-items-center justify-content-center"
+                      onClick={() => setActiveTab('resources')}
+                    >
+                      <FaLink className="me-2" /> Important Links
+                    </Button>
+                  </Card.Body>
+                </Card>
+              </Col>
+              
+              {/* My Uploaded Curriculum */}
+              <Col lg={8}>
+                <Card className="shadow-sm h-100">
+                  <Card.Header className="bg-primary text-white">
+                    <h5 className="mb-0">My Uploaded Curriculum</h5>
+                  </Card.Header>
+                  <Card.Body>
+                    {loading ? (
+                      <p className="text-center my-4">Loading your curriculum data...</p>
+                    ) : (
+                      <>
+                        {myCurriculum.length > 0 ? (
+                          <div className="table-responsive">
+                            <table className="table table-hover">
+                              <thead>
+                                <tr>
+                                  <th>Title</th>
+                                  <th>Year</th>
+                                  <th>Semester</th>
+                                  <th>Status</th>
+                                  <th>Last Updated</th>
+                                  <th>Views</th>
+                                  <th>Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {myCurriculum.map(item => (
+                                  <tr key={item.id}>
+                                    <td>{item.title}</td>
+                                    <td>{item.year}</td>
+                                    <td>{item.semester}</td>
+                                    <td>
+                                      {item.status === 'published' ? (
+                                        <Badge bg="success">Published</Badge>
+                                      ) : (
+                                        <Badge bg="warning" text="dark">Draft</Badge>
+                                      )}
+                                    </td>
+                                    <td>{item.lastUpdated}</td>
+                                    <td>{item.views}</td>
+                                    <td>
+                                      <Button
+                                        as={Link}
+                                        to={`/curriculum/view/${item.id}`}
+                                        variant="outline-primary"
+                                        size="sm"
+                                        className="me-2"
+                                        title="View"
+                                      >
+                                        <FaEye />
+                                      </Button>
+                                      <Button
+                                        variant="outline-secondary"
+                                        size="sm"
+                                        className="me-2"
+                                        title="Edit"
+                                      >
+                                        <FaEdit />
+                                      </Button>
+                                      {item.status === 'published' && (
+                                        <Button
+                                          variant="outline-success"
+                                          size="sm"
+                                          title="Download"
+                                          onClick={() => handleDownloadCurriculum(item)}
+                                        >
+                                          <FaDownload />
+                                        </Button>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <div className="text-center my-4">
+                            <p>You haven't uploaded any curriculum yet.</p>
+                            <Button as={Link} to="/curriculum/upload" variant="primary">
+                              Upload Your First Curriculum
+                            </Button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+          </Tab.Pane>
+          
+          {/* Announcements Tab */}
+          <Tab.Pane eventKey="announcements">
+            <AnnouncementsList />
+          </Tab.Pane>
+          
+          {/* Academic Calendar Tab */}
+          <Tab.Pane eventKey="calendar">
+            <AcademicCalendar />
+          </Tab.Pane>
+          
+          {/* Resources & Links Tab */}
+          <Tab.Pane eventKey="resources">
+            <ResourcesList />
+          </Tab.Pane>
+        </Tab.Content>
+      </Tab.Container>
     </div>
   );
 };
